@@ -73,7 +73,6 @@ function Login() {
         const userData = await authervice.getCurrentUser();
         dispatch(userLogin({ user: { ...userData } })); // Update Redux
         navigate("/chatroom"); // Redirect to chatroom
-        console.log("Login successful:", userData);
       }
     } catch (error) {
       console.error("Login failed:", error.message);
