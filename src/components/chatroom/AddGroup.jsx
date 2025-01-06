@@ -127,19 +127,33 @@ function AddGroup({ setSelectedUser }) {
   useEffect(() => {
     const pollUnreadCounts = async () => {
       const counts = { ...unreadCounts };
-      for (const u of users) {
-        // Pass both userId and recipientId to getMessages
-        const messages = await appwriteService.getMessages(user.$id, u.$id); // <-- Fix here
+      let updatedUsers = [...users];
 
-        // Count only unread messages
+      for (const u of updatedUsers) {
+        const messages = await appwriteService.getMessages(user.$id, u.$id);
         const lastSeen = localStorage.getItem(`lastSeen_${u.$id}`) || 0;
+
+        // Calculate unread messages
         const unread = messages.filter(
           (msg) => new Date(msg.timestamp).getTime() > lastSeen
         ).length;
 
-        counts[u.$id] = unread; // Update counts
+        counts[u.$id] = unread;
+
+        // Track the latest activity timestamp
+        const lastMessageTime =
+          messages.length > 0
+            ? new Date(messages[messages.length - 1].timestamp).getTime()
+            : 0;
+        u.lastMessageTime = lastMessageTime;
       }
-      setUnreadCounts(counts);
+
+      // Sort users by recent activity (most recent first)
+      updatedUsers.sort((a, b) => b.lastMessageTime - a.lastMessageTime);
+
+      setUnreadCounts(counts); // Update unread counts
+      setUsers(updatedUsers); // Update ordered users
+      setFilteredUsers(updatedUsers); // Update filtered users
     };
 
     const interval = setInterval(pollUnreadCounts, 2000); // Poll every 3 seconds
@@ -153,7 +167,7 @@ function AddGroup({ setSelectedUser }) {
       const results = users.filter((u) =>
         u.userName.toLowerCase().includes(searchUser.toLowerCase())
       );
-      setFilteredUsers(results); // Update filtered users dynamically
+      setFilteredUsers(results);
     }, 100); // Shorter debounce time
     return () => clearTimeout(timeoutId);
   }, [searchUser, users]);

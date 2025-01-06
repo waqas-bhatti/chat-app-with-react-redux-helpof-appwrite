@@ -137,10 +137,18 @@ function ChatRoom({ recipientId, userName }) {
         newMessage,
         featuredImage
       );
+
       setNewMessage("");
       setImage(null);
       setImagePreview(null);
       fetchData();
+
+      // Move yourself to the top in the recipient's list
+      const updatedUsers = [...users];
+      const senderIndex = updatedUsers.findIndex((u) => u.$id === user.$id);
+      const [movedUser] = updatedUsers.splice(senderIndex, 1);
+      updatedUsers.unshift(movedUser);
+      setUsers(updatedUsers);
     } catch (error) {
       console.error("Failed to send message:", error);
     }
