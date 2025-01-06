@@ -63,7 +63,7 @@ export class AuthService {
     try {
       this.account.createOAuth2Session(
         OAuthProvider.Google,
-        "http://localhost:5173/chatroom"
+        "http://chatapp-mu-weld.vercel.app/chatroom"
       );
     } catch (error) {
       throw new Error("Failed to login with Google", error);
