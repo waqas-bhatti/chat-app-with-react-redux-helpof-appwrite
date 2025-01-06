@@ -10,6 +10,8 @@ import {
   TextField,
   Stack,
   useMediaQuery,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useSelector, useDispatch } from "react-redux";
@@ -19,13 +21,14 @@ import authService from "../../apwriteService/auth";
 import { userLogout } from "../../ReduxStore/ChatSlice";
 import appwriteService from "../../apwriteService/appwriteService";
 import { RotatingLines } from "react-loader-spinner";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 
 function AddGroup({ setSelectedUser }) {
   const [searchUser, setSearchUser] = useState("");
   const [users, setUsers] = useState([]);
   const [unreadCounts, setUnreadCounts] = useState({});
   const [filteredUsers, setFilteredUsers] = useState([]);
-  const [isNameAdded, setIsNameAdded] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [activeUser, setActiveUser] = useState(null);
   const user = useSelector((state) => state.chat.user);
@@ -100,33 +103,6 @@ function AddGroup({ setSelectedUser }) {
     fetchUsers();
   }, []);
 
-  // const handleAddUser = async () => {
-  //   if (!newUser.trim()) {
-  //     alert("Please enter a valid username.");
-  //     return;
-  //   }
-
-  //   const isDuplicate = users.some(
-  //     (user) => user.userName.toLowerCase() === newUser.toLowerCase()
-  //   );
-
-  //   if (isDuplicate) {
-  //     alert("User already exists!");
-  //     return;
-  //   }
-
-  //   try {
-  //     await appwriteService.addUser(newUser);
-  //     alert("User added successfully!");
-  //     setNewUser("");
-  //     setIsNameAdded(true);
-  //     fetchUsers();
-  //   } catch (error) {
-  //     console.error("Failed to add user:", error.message);
-  //     alert("Error adding user.");
-  //   }
-  // };
-
   const handleLogout = async () => {
     try {
       await authService.logout();
@@ -182,6 +158,16 @@ function AddGroup({ setSelectedUser }) {
     return () => clearTimeout(timeoutId);
   }, [searchUser, users]);
 
+  // select option for logout
+
+  const handleClick = (e) => {
+    setAnchorEl(e.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
   return (
     <Box
       sx={{
@@ -193,17 +179,54 @@ function AddGroup({ setSelectedUser }) {
         paddingRight: 4,
       }}
     >
-      <Stack direction="row" alignItems="center" spacing={2}>
-        <Avatar sx={{ bgcolor: "#0d47a1", top: "4px" }}>
-          {user?.name ? user.name[0].toUpperCase() : "U"}
-        </Avatar>
+      <Stack
+        direction="row"
+        alignItems="center"
+        spacing={2}
+        sx={{ width: "100%", justifyContent: "space-between" }}
+      >
+        <Stack direction="row" alignItems="center" spacing={2}>
+          <Avatar sx={{ bgcolor: "#0d47a1", top: "4px" }}>
+            {user?.name ? user.name[0].toUpperCase() : "U"}
+          </Avatar>
+          <Typography variant="h6">
+            {user?.name.toUpperCase() || "User"}
+          </Typography>
+        </Stack>
+
+        <Typography>
+          <MoreVertIcon onClick={handleClick} />
+
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleClose}
+          >
+            <MenuItem onClick={handleLogout}>
+              {isAuthenticated ? (
+                <Button
+                  onClick={handleLogout}
+                  variant="contained"
+                  sx={{
+                    backgroundColor: "#0d47a1",
+                    mt: "auto",
+                    "&:hover": { backgroundColor: "#0c3c7d" },
+                  }}
+                >
+                  Logout <LogoutIcon />
+                </Button>
+              ) : (
+                <Box>
+                  <NavLink to="/login">
+                    <Typography>Please Login</Typography>
+                  </NavLink>
+                </Box>
+              )}
+            </MenuItem>
+          </Menu>
+        </Typography>
       </Stack>
 
-      <Box>
-        <Typography variant="h6">
-          {user?.name.toUpperCase() || "User"}
-        </Typography>
-      </Box>
       <Box
         sx={{
           p: 2,
@@ -326,26 +349,6 @@ function AddGroup({ setSelectedUser }) {
             <Typography>No users available.</Typography>
           )}
         </List>
-      )}
-
-      {isAuthenticated ? (
-        <Button
-          onClick={handleLogout}
-          variant="contained"
-          sx={{
-            backgroundColor: "#0d47a1",
-            mt: "auto",
-            "&:hover": { backgroundColor: "#0c3c7d" },
-          }}
-        >
-          Logout <LogoutIcon />
-        </Button>
-      ) : (
-        <Box>
-          <NavLink to="/login">
-            <Typography>Please Login</Typography>
-          </NavLink>
-        </Box>
       )}
     </Box>
   );
